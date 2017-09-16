@@ -1,5 +1,31 @@
 import numpy as np
 import cv2
+from tkinter import *
+from PIL import Image, ImageTk
+from tkinter import filedialog
+
+def select_image():
+    global panelA, panelB
+
+    path = filedialog.askopenfilename()
+
+    if len(path) > 0:
+        image = cv2.imread(path, 0)
+        #gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        image = Image.fromarray(image)
+        image = ImageTk.PhotoImage(image)
+
+    if panelA is None and panelB is None:
+        panelA = Label(image=image)
+        panelA.image = image
+        panelA.pack(side='left', padx=10, pady=10)
+    else:
+        panelA.configure(image=image)
+        panelA.image = image
+
+# Global Variables
+image = None
 
 def alargamento_constrate(image, limiar):
     height, width = image.shape
@@ -10,7 +36,7 @@ def alargamento_constrate(image, limiar):
             else:
                 image[h,w] = 1
 
-def log_transformation(image, constant = 1):
+def log_transformation(constant = 1):
     height, width = image.shape
     for h in range(0,height):
         for w in range(0,width):
@@ -25,16 +51,20 @@ def powerrating_transformation(image, gama, constant = 1):
 def bits_plane(image, plane):
     height, width = image.shape
     new_image = np.zeros((height, width))
-    n = 8
     for h in range(0,height):
         for w in range(0,width):
             bin_number = '{0:08b}'.format(image[h,w])
-            new_image[h,w] = int(bin_number[:n - plane],2)
+            if int(bin_number[7 - plane]) == 1:
+                image[h,w] = 255
+            else:
+                image[h,w] = 0
 
 
 if __name__ == '__main__':
-    img = cv2.imread('ar_chaves.jpg', 0)
-    cv2.imshow('image', img)
-    #alargamento_constrate(img, 100)
-    #log_transformation(img, 1)
-    powerrating_transformation(img, 1.0)
+    root = Tk()
+    panelA = None
+    panelB = None
+    btn = Button(root, text='Select a image', command=select_image)
+    btn.pack(side='bottom', fill='both', expand='yes', padx='10', pady='10')
+
+    root.mainloop()
