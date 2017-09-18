@@ -1,3 +1,5 @@
+import numpy as np
+
 class PDI():
 
     def alargamento_constrate(image,limiar):
@@ -7,8 +9,10 @@ class PDI():
             for w in range(0,width):
                 if image[h, w] < limiar:
                     new_image[h,w] = 0
+                elif image[h, w]  == limiar:
+                    new_image[h,w] = 128
                 else:
-                    new_image[h,w] = 1
+                    new_image[h,w] = 255
         return new_image
 
     def log_transformation(image,constant = 1):
@@ -16,7 +20,7 @@ class PDI():
         new_image = image.copy()
         for h in range(0,height):
             for w in range(0,width):
-                new_image[h,w] = constant * np.log10(image[h,w] + 1)
+                new_image[h,w] = constant * np.log10((image[h,w]/255) + 1)*255
         return new_image
 
     def powerrating_transformation(image,gama, constant = 1):
@@ -24,7 +28,7 @@ class PDI():
         new_image = image.copy()
         for h in range(0,height):
             for w in range(0,width):
-                new_image[h,w] = constant * (image[h,w] ** gama)
+                new_image[h,w] = constant * ((image[h,w]/255) ** gama) * 255
         return new_image
 
     def bits_plane(image,plane):

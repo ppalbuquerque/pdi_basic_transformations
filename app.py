@@ -1,11 +1,10 @@
-import numpy as np
 import cv2
 from tkinter import *
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from pdi import PDI
 
-def select_image():
+def select_image(callbacks):
     global panelA, image_cv
 
     path = filedialog.askopenfilename()
@@ -13,13 +12,14 @@ def select_image():
     if len(path) > 0:
         image_cv = cv2.imread(path, 0)
         image = Image.fromarray(image_cv)
-        image = image.resize((250, 250), Image.ANTIALIAS)
+        image = image.resize((350, 350), Image.ANTIALIAS)
         image = ImageTk.PhotoImage(image)
+        callbacks.image = image_cv
 
     if panelA is None and panelB is None:
         panelA = Label(image=image)
         panelA.image = image
-        panelA.pack(side='left', padx=10, pady=10)
+        panelA.place(x = 25, y = 100)
     else:
         panelA.configure(image=image)
         panelA.image = image
@@ -27,12 +27,12 @@ def select_image():
 
 def show_image(image, panel):
     image = Image.fromarray(image)
-    image = image.resize((250, 250), Image.ANTIALIAS)
+    image = image.resize((350, 350), Image.ANTIALIAS)
     image = ImageTk.PhotoImage(image)
     if panel is None:
         panel = Label(image=image)
         panel.image = image
-        panel.pack(side='left', padx=10, pady=10)
+        panel.place(x = 400,y = 100)
     else:
         panel.configure(image=image)
         panel.image = image
@@ -43,18 +43,18 @@ class Callbacks():
         self.panel = panel
         self.image = image
 
-    def log_call(self):
-        show_image(PDI.log_transformation(self.image,50), self.panel)
+    def log_call(self, log_entry):
+        show_image(PDI.log_transformation(self.image,int(log_entry.get())), self.panel)
 
-    def pow_call(self):
-        show_image(PDI.powerrating_transformation(self.image, 3), self.panel)
+    def pow_call(self, pow_entry):
+        show_image(PDI.powerrating_transformation(self.image, float(pow_entry.get()), 1), self.panel)
 
     def bits_call(self, bits_plane_list):
         plane = int(bits_plane_list.get(ACTIVE)[6])
         show_image(PDI.bits_plane(self.image, plane), self.panel)
 
-    def contrast_call(self):
-        show_image(PDI.alargamento_constrate(self.image,56), self.panel)
+    def contrast_call(self, constr_entry):
+        show_image(PDI.alargamento_constrate(self.image,int(constr_entry.get())), self.panel)
 
 
 def init_list_options(root):
@@ -69,28 +69,44 @@ def init_list_options(root):
     bits_plane_list.insert(7,'Plano 7')
     return bits_plane_list
 
+
+
 if __name__ == '__main__':
     image_cv = None
     root = Tk()
+    root.title("PDI")
+    root.minsize(width=760,height=660)
     panelA = None
     panelB = None
     image_loaded = False
-    btn = Button(root, text='Selecionar Imagem', command=select_image)
-    btn.pack(side='bottom', fill='both', expand='yes', padx='10', pady='10')
+    callbacks = Callbacks(panelB, image_cv)
+    btn = Button(root, text='Selecionar Imagem', command=lambda: select_image(callbacks))
+    btn.place(x = 30, y = 25)
 
 
     while True:
         root.update()
         if (panelA is not None and image_loaded == False):
+            log_label = Label(text = "Constante Da Logaritimica")
+            entry_log = Entry()
+            pow_label = Label(text = "Gama da potência")
+            entry_pow = Entry()
+            contr_label = Label(text = "Limiar do alargamento")
+            entry_contr = Entry()
+            log_label.place(x = 25, y= 510)
+            entry_log.place(x = 25, y = 530)
+            pow_label.place(x = 35, y = 550)
+            entry_pow.place(x = 25, y = 570)
+            contr_label.place(x = 25, y = 600)
+            entry_contr.place(x = 25, y = 620)
             image_loaded = True
-            callbacks = Callbacks(panelB, image_cv)
             bits_plane_list = init_list_options(root)
-            bits_plane_list.pack()
-            btn = Button(root, text='Transformação Logaritimica', command=callbacks.log_call)
-            btn.pack(side='bottom', fill='both', expand='yes', padx='10', pady='10')
-            btn = Button(root, text='Transformação de Potência', command=callbacks.pow_call)
-            btn.pack(side='bottom', fill='both', expand='yes', padx='10', pady='10')
+            bits_plane_list.place(x=300, y = 510)
+            btn = Button(root, text='Transformação Logaritimica', command=lambda: callbacks.log_call(entry_log))
+            btn.place(x=25,y=475)
+            btn = Button(root, text='Transformação de Potência', command=lambda: callbacks.pow_call(entry_pow))
+            btn.place(x=225,y=475)
             btn = Button(root, text='Plano De Bits', command=lambda: callbacks.bits_call(bits_plane_list))
-            btn.pack(side='bottom', fill='both', expand='yes', padx='10', pady='10')
-            btn = Button(root, text='Alargamento De Contraste', command=callbacks.contrast_call)
-            btn.pack(side='bottom', fill='both', expand='yes', padx='10', pady='10')
+            btn.place(x=425,y=475)
+            btn = Button(root, text='Alargamento De Contraste', command=lambda: callbacks.contrast_call(entry_contr))
+            btn.place(x=540,y=475)
